@@ -9,15 +9,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
       - name: Build
         run: |
-          sudo mkdir /opt/jvm && curl --proto '=https' --tlsv1.2 -sSfL https://github.com/graalvm/labs-openjdk-17/releases/download/jvmci-21.3-b02/labsjdk-ce-17+35-jvmci-21.3-b02-linux-amd64.tar.gz | sudo tar --strip-components=1 -xzvC /opt/jvm
-          export JAVA_HOME=/opt/jvm
-          export PATH="/opt/jvm:$PATH"
+          sudo mkdir /opt/jvm && curl --proto '=https' --tlsv1.2 -sSfL https://github.com/imkiva/labs-openjdk-17/releases/download/macos-aarch64/jdk-17-internal+0_macos-aarch64_bin.tar.gz | sudo tar --strip-components=1 -xzvC /opt/jvm
+          export JAVA_HOME=/opt/jvm/Contents/Home
+          export PATH="/opt/jvm/bin:$PATH"
           git clone --depth 1 https://github.com/graalvm/mx
           export PATH="$PWD/mx:$PATH"
           git clone --depth 1 https://github.com/graalvm/graal.git
@@ -34,8 +34,18 @@ jobs:
         run: find -name 'native-image*jar*'
       - name: Make archives
         run: |
-          gzip graal/sdk/mxbuild/linux-amd64/dists/graalvm-ce-java17.tar
-          tar -czvf GRAALVM_CE_JAVA17.tgz -C graal/sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA17 .
+          gzip graal/sdk/mxbuild/darwin-aarch64/dists/graalvm-ce-java17.tar
+          tar -czvf GRAALVM_CE_JAVA17.tgz -C graal/sdk/mxbuild/darwin-aarch64/GRAALVM_CE_JAVA17 .
+      - name: Archive production artifacts GRAALVM_CE_JAVA17
+        uses: actions/upload-artifact@v2
+        with:
+          name: GRAALVM_CE_JAVA17
+          path: graal/sdk/mxbuild/darwin-aarch64/GRAALVM_CE_JAVA17
+      - name: Archive production artifacts graalvm-ce-java17.tar.gz
+        uses: actions/upload-artifact@v2
+        with:
+          name: graalvm-ce-java17.tar.gz
+          path: graal/sdk/mxbuild/darwin-aarch64/dists/graalvm-ce-java17.tar.gz
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -43,15 +53,5 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            graal/sdk/mxbuild/linux-amd64/dists/graalvm-ce-java17.tar.gz
+            graal/sdk/mxbuild/darwin-aarch64/dists/graalvm-ce-java17.tar.gz
             GRAALVM_CE_JAVA17.tgz
-      - name: Archive production artifacts GRAALVM_CE_JAVA17
-        uses: actions/upload-artifact@v2
-        with:
-          name: GRAALVM_CE_JAVA17
-          path: graal/sdk/mxbuild/linux-amd64/GRAALVM_CE_JAVA17
-      - name: Archive production artifacts graalvm-ce-java17.tar.gz
-        uses: actions/upload-artifact@v2
-        with:
-          name: graalvm-ce-java17.tar.gz
-          path: graal/sdk/mxbuild/linux-amd64/dists/graalvm-ce-java17.tar.gz
